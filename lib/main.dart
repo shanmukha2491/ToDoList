@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:todoapp/screens/home_screen.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
+
+  var box = await Hive.openBox('myBox');
   runApp(const MyApp());
 }
 
@@ -12,13 +17,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const TodoList(),
-      }
-      
-    );
+        debugShowCheckedModeBanner: false,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const TodoList(),
+        });
   }
 }
-

@@ -1,7 +1,9 @@
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
+import "package:hive_flutter/hive_flutter.dart";
 import "package:todoapp/components/add_task_alert.dart";
 import "package:todoapp/components/to_do_tile.dart";
+import "package:todoapp/data/database.dart";
 
 class TodoList extends StatefulWidget {
   const TodoList({super.key});
@@ -11,11 +13,21 @@ class TodoList extends StatefulWidget {
 }
 
 class _TodoListState extends State<TodoList> {
-  List tasks = [
-    ["Make tutorials", false],
-    ["Complete DSA", false],
-    ["Eat healthy", true]
-  ];
+  // reference the hive box
+
+  final myBox = Hive.box('myBox');
+  ToDoDatabase db = ToDoDatabase();
+
+  @override
+  void initState() {
+    if (myBox.get("TODOLIST") == null) {
+      db.createInitialData();
+    } else {
+      // there already exists data
+      db.loadData();
+    }
+    super.initState();
+  }
 
   void createNewTask() {
     showDialog(
@@ -30,6 +42,7 @@ class _TodoListState extends State<TodoList> {
             controller: textController,
           );
         });
+    
   }
 
   final textController = TextEditingController();
@@ -43,13 +56,13 @@ class _TodoListState extends State<TodoList> {
         floatingActionButton: FloatingActionButton(
             child: const Icon(Icons.add), onPressed: createNewTask),
         body: ListView.builder(
-          itemCount: tasks.length,
+          itemCount: db.toDoList.length,
           itemBuilder: (context, index) {
             return ToDoTile(
                 deleteFunction: (context) => deleteTask(index),
-                taskName: tasks[index][0],
+                taskName: db.toDoList[index][0],
                 onChanged: (value) => onChangedFun(value, index),
-                taskCompleted: tasks[index][1],
+                taskCompleted: db.toDoList[index][1],
                 changedColor: changeBackGroundColor(index));
           },
         ));
@@ -57,28 +70,33 @@ class _TodoListState extends State<TodoList> {
 
   onChangedFun(bool? value, int index) {
     setState(() {
-      tasks[index][1] = !tasks[index][1];
+      db.toDoList[index][1] = !db.toDoList[index][1];
     });
+    db.updateDatabase();
   }
 
   Color changeBackGroundColor(int index) {
-    if (tasks[index][1] == true) {
+    if (db.toDoList[index][1] == true) {
       return Colors.green;
     }
+    
     return Colors.lightBlueAccent;
   }
 
   void saveText() {
     setState(() {
-      tasks.add([textController.text, false]);
+      db.toDoList.add([textController.text, false]);
       textController.clear();
     });
+    
     Navigator.of(context).pop();
+    db.updateDatabase();
   }
 
   void deleteTask(int index) {
     setState(() {
-      tasks.removeAt(index);
+      db.toDoList.removeAt(index);
     });
+    db.updateDatabase();
   }
 }
