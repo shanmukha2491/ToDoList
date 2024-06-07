@@ -1,5 +1,8 @@
+import "dart:math";
+
+import "package:audioplayers/audioplayers.dart";
 import "package:flutter/material.dart";
-import "package:flutter/widgets.dart";
+
 import "package:hive_flutter/hive_flutter.dart";
 import "package:todoapp/components/add_task_alert.dart";
 import "package:todoapp/components/to_do_tile.dart";
@@ -42,7 +45,6 @@ class _TodoListState extends State<TodoList> {
             controller: textController,
           );
         });
-    
   }
 
   final textController = TextEditingController();
@@ -70,6 +72,9 @@ class _TodoListState extends State<TodoList> {
 
   onChangedFun(bool? value, int index) {
     setState(() {
+      if (db.toDoList[index][1] == false){
+        playSound();
+      }
       db.toDoList[index][1] = !db.toDoList[index][1];
     });
     db.updateDatabase();
@@ -77,9 +82,10 @@ class _TodoListState extends State<TodoList> {
 
   Color changeBackGroundColor(int index) {
     if (db.toDoList[index][1] == true) {
+      
       return Colors.green;
     }
-    
+
     return Colors.lightBlueAccent;
   }
 
@@ -88,7 +94,7 @@ class _TodoListState extends State<TodoList> {
       db.toDoList.add([textController.text, false]);
       textController.clear();
     });
-    
+
     Navigator.of(context).pop();
     db.updateDatabase();
   }
@@ -98,5 +104,17 @@ class _TodoListState extends State<TodoList> {
       db.toDoList.removeAt(index);
     });
     db.updateDatabase();
+  }
+
+  Future<void> playSound() async {
+    AudioPlayer audioPlayer = AudioPlayer();
+    String source = "sounds/notification.mp3";
+    if (source.isNotEmpty){
+      await audioPlayer.play(AssetSource(source));
+    }
+    else{
+      print("not found file");
+    }
+    
   }
 }
